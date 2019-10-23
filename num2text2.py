@@ -30,7 +30,7 @@ from tensor2tensor.data_generators import wiki_lm
 from tensor2tensor.utils import registry
 from tensor2tensor.models.transformer import transformer_base, transformer_base_multistep8
 
-from text_getn import gen_data
+from .text_gen import gen_data
 
 import tensorflow as tf
 
@@ -39,6 +39,9 @@ class NumToText(translate.TranslateProblem):
   @property
   def var1(self):
     return 5
+
+  def source_data_files(self, dataset_split):
+    return []
 
   @property
   def vocab_type(self):

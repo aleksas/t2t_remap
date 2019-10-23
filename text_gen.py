@@ -26,7 +26,7 @@ def load_processor():
     else:
         url = 'https://raw.githubusercontent.com/aleksas/liepa_dataset/master/other/stressed/__final_1.txt'
         text = urllib.request.urlopen( url ).read()
-        text = text[:200000]
+        text = text[:400000]
         with Processor(text) as processor:
             re_clean = compile(r'[~`\^]')
             processor.process(
