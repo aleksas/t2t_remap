@@ -3,7 +3,7 @@ import urllib.request
 from re import compile
 from os.path import isfile
 
-def next(span_map, source_len_limit, target_len_limit):
+def next_pair(span_map, source_len_limit, target_len_limit):
     span_map_length = len(span_map)
     for start in range(span_map_length):
         for end in range(start, span_map_length):
@@ -25,8 +25,8 @@ def load_processor():
             processor = Processor.load(fp)
     else:
         url = 'https://raw.githubusercontent.com/aleksas/liepa_dataset/master/other/stressed/__final_1.txt'
-        text = urllib.request.urlopen( url ).read()
-        text = text[:400000]
+        text = urllib.request.urlopen( url ).decode('utf-8')
+        #text = text[:1000]
         with Processor(text) as processor:
             re_clean = compile(r'[~`\^]')
             processor.process(

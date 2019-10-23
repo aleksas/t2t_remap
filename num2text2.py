@@ -20,7 +20,6 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import tarfile
 from tensor2tensor.data_generators import generator_utils
 from tensor2tensor.data_generators import problem
 from tensor2tensor.data_generators import text_encoder
@@ -30,18 +29,36 @@ from tensor2tensor.data_generators import wiki_lm
 from tensor2tensor.utils import registry
 from tensor2tensor.models.transformer import transformer_base, transformer_base_multistep8
 
-from .text_gen import gen_data
-
+from .text_gen import next_pair
+from re_map import Processor
+import re
+import io
 import tensorflow as tf
+
+
+_NUM2TEXT_DATASETS = [
+    [
+        "https://raw.githubusercontent.com/aleksas/liepa_dataset/master/other/stressed/__final_1.txt",  # pylint: disable=line-too-long
+        ("__final_1.txt")
+    ]
+]
+
+
+
+def _get_num2text_dataset(directory, filename):
+  """Extract the WMT en-de corpus `filename` to directory unless it's there."""
+  train_path = os.path.join(directory, filename)
+  if not (tf.gfile.Exists(train_path + "__final_1.txt")):
+    url = _NUM2TEXT_DATASETS[0][0]
+    generator_utils.maybe_download(directory, "__final_1.txt", url)
+  return train_path
+
 
 @registry.register_problem
 class NumToText(translate.TranslateProblem):
   @property
   def var1(self):
     return 5
-
-  def source_data_files(self, dataset_split):
-    return []
 
   @property
   def vocab_type(self):
@@ -66,11 +83,40 @@ class NumToText(translate.TranslateProblem):
 
   @property
   def approx_vocab_size(self):
-    return 2**8  # 256
+    return 2**13  # 256
 
-  def generate_samples(self, data_dir, tmp_dir, dataset_split):
-    for inputs, targets in gen_data():
-      yield {"inputs": inputs, "targets": targets}
+  def source_data_files(self, dataset_split):
+      return _NUM2TEXT_DATASETS
+
+  def get_pairs(self, data_dir, tmp_dir):
+    train_path = _get_num2text_dataset(tmp_dir, '')
+
+    with io.open(train_path + "__final_1.txt", mode="r", encoding="utf-8") as fp:
+      with Processor(fp.read()) as processor:
+        re_clean = re.compile(r'[~`\^]')
+        processor.process(
+            pattern=r'([A-ZĄ-ža-zą-ž`~^]+)',
+            replacement_map={ 1: lambda x : re_clean.sub('', x) }
+        )
+
+        processor.swap()
+      
+      
+      for source_span, target_span in next_pair(processor.span_map, 250, 250):
+        source_text = processor.text[source_span[0]:source_span[1]]
+        target_text = processor.processed_text[target_span[0]:target_span[1]]
+
+        yield source_text, target_text
+
+
+  def generate_text_for_vocab(self, data_dir, tmp_dir):      
+    for inputs, targets in self.get_pairs(data_dir, tmp_dir):
+      yield inputs
+      yield targets
+
+  def generate_samples(self, data_dir, tmp_dir, dataset_split):      
+      for inputs, targets in self.get_pairs(data_dir, tmp_dir):
+        yield {"inputs": inputs, "targets": targets}
 
 @registry.register_problem
 class NumToText1K(NumToText):
@@ -79,12 +125,19 @@ class NumToText1K(NumToText):
     return 2**10  # 1024
 
 @registry.register_hparams
-def transformer_base_bs94_lrc1():
+def transformer_base_bs1k_lrc1():
   """HParams for simulating 8 GPUs with MultistepAdam optimizer."""
   hparams = transformer_base()
-  hparams.batch_size = 9400
+  hparams.batch_size = 1024
   hparams.eval_drop_long_sequences=True
   hparams.learning_rate_constant = 1.0
+  return hparams
+
+@registry.register_hparams
+def transformer_base_bs94_lrc1():
+  """HParams for simulating 8 GPUs with MultistepAdam optimizer."""
+  hparams = transformer_base_bs1k_lrc1()
+  hparams.batch_size = 9400
   return hparams
 
 @registry.register_hparams
