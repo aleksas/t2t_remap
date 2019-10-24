@@ -39,7 +39,15 @@ import tensorflow as tf
 _NUM2TEXT_DATASETS = [
     [
         "https://raw.githubusercontent.com/aleksas/liepa_dataset/master/other/stressed/__final_1.txt",  # pylint: disable=line-too-long
-        ("__final_1.txt")
+        "__final_1.txt"
+    ],
+    [
+        "https://raw.githubusercontent.com/aleksas/liepa_dataset/master/other/stressed/chrestomatija.txt",  # pylint: disable=line-too-long
+        "chrestomatija.txt"
+    ],
+    [
+        "https://raw.githubusercontent.com/aleksas/liepa_dataset/master/other/stressed/marti.txt",  # pylint: disable=line-too-long
+        "marti.txt"
     ]
 ]
 
@@ -48,9 +56,10 @@ _NUM2TEXT_DATASETS = [
 def _get_num2text_dataset(directory, filename):
   """Extract the WMT en-de corpus `filename` to directory unless it's there."""
   train_path = os.path.join(directory, filename)
-  if not (tf.gfile.Exists(train_path + "__final_1.txt")):
-    url = _NUM2TEXT_DATASETS[0][0]
-    generator_utils.maybe_download(directory, "__final_1.txt", url)
+  for dataset in _NUM2TEXT_DATASETS:
+    if not (tf.gfile.Exists(train_path + dataset[1])):
+      url = dataset[0]
+      generator_utils.maybe_download(directory, dataset[1], url)
   return train_path
 
 
@@ -83,7 +92,7 @@ class NumToText(translate.TranslateProblem):
 
   @property
   def approx_vocab_size(self):
-    return 2**13  # 256
+    return 2**14  # 16384
 
   def source_data_files(self, dataset_split):
       return _NUM2TEXT_DATASETS
@@ -91,22 +100,23 @@ class NumToText(translate.TranslateProblem):
   def get_pairs(self, data_dir, tmp_dir):
     train_path = _get_num2text_dataset(tmp_dir, '')
 
-    with io.open(train_path + "__final_1.txt", mode="r", encoding="utf-8") as fp:
-      with Processor(fp.read()) as processor:
-        re_clean = re.compile(r'[~`\^]')
-        processor.process(
-            pattern=r'([A-ZĄ-ža-zą-ž`~^]+)',
-            replacement_map={ 1: lambda x : re_clean.sub('', x) }
-        )
+    for dataset in _NUM2TEXT_DATASETS:
+      with io.open(train_path + dataset[1], mode="r", encoding="utf-8") as fp:
+        with Processor(fp.read()) as processor:
+          re_clean = re.compile(r'[~`\^]')
+          processor.process(
+              pattern=r'([A-ZĄ-ža-zą-ž`~^]+)',
+              replacement_map={ 1: lambda x : re_clean.sub('', x) }
+          )
 
-        processor.swap()
-      
-      
-      for source_span, target_span in next_pair(processor.span_map, 250, 250):
-        source_text = processor.text[source_span[0]:source_span[1]]
-        target_text = processor.processed_text[target_span[0]:target_span[1]]
+          processor.swap()
+        
+        
+        for source_span, target_span in next_pair(processor.span_map, 500, 500):
+          source_text = processor.text[source_span[0]:source_span[1]]
+          target_text = processor.processed_text[target_span[0]:target_span[1]]
 
-        yield source_text, target_text
+          yield source_text, target_text
 
 
   def generate_text_for_vocab(self, data_dir, tmp_dir):      
@@ -229,6 +239,6 @@ def transformer_base_bs94_lrc1_do4_e():
 @registry.register_hparams
 def transformer_base_bs94_lrc1_do4_f():
   hparams = transformer_base_bs94_lrc1_do4()
-  hparams.batch_size = 8800
+  hparams.batch_size = 9400
   return hparams
 
