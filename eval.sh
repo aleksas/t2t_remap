@@ -11,22 +11,12 @@ TRAIN_DIR=$HOME/t2t_train/$PROBLEM/$MODEL-$HPARAMS_SET
 
 DECODE_FILE=$DATA_DIR/decode_this.txt
 DECODE_TO_FILE=$DATA_DIR/decode_result.txt
-echo "1 2 3 4 5 6" > $DECODE_FILE
-echo "1 20 3 40 5 60" >> $DECODE_FILE
-echo "1 2 30 4 50 6" >> $DECODE_FILE
-echo "1001 2 3003 4 5005 6" >> $DECODE_FILE
-echo "1,2,3,4,5,6" >> $DECODE_FILE
-echo "1,20,3,40,5,60" >> $DECODE_FILE
-echo "1,2,30,4,50,6" >> $DECODE_FILE
-echo "1001,2,3003,4,5005,6 4 223 4553 1 0 0" >> $DECODE_FILE
-echo "1001,2,3003,4,5005,6 , 43 ,1 ,21 3" >> $DECODE_FILE
-echo "1001,2,3003,4,5005,6" >> $DECODE_FILE
-echo "1001 m. vasario 3 d.,2,3003,4,5005,6" >> $DECODE_FILE
-echo "101-11-05,2,3003,4,5005,6" >> $DECODE_FILE
+echo "Einam namo." > $DECODE_FILE
+echo "Nerandu namo." >> $DECODE_FILE
+echo "Reikia kelių kartų, kad atsinaujintų populiacija." >> $DECODE_FILE
+echo "Stuktelėjo keletą kartų." >> $DECODE_FILE
 
-
-
-BEAM_SIZE=10
+BEAM_SIZE=5
 ALPHA=0.6
 
 t2t-decoder \
