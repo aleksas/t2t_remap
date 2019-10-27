@@ -39,7 +39,15 @@ import tensorflow as tf
 _NUM2TEXT_DATASETS = [
     [
         "https://raw.githubusercontent.com/aleksas/liepa_dataset/master/other/stressed/__final_1.txt",  # pylint: disable=line-too-long
-        ("__final_1.txt")
+        "__final_1.txt"
+    ],
+    [
+        "https://raw.githubusercontent.com/aleksas/liepa_dataset/master/other/stressed/chrestomatija.txt",  # pylint: disable=line-too-long
+        "chrestomatija.txt"
+    ],
+    [
+        "https://raw.githubusercontent.com/aleksas/liepa_dataset/master/other/stressed/marti.txt",  # pylint: disable=line-too-long
+        "marti.txt"
     ]
 ]
 
@@ -48,9 +56,10 @@ _NUM2TEXT_DATASETS = [
 def _get_num2text_dataset(directory, filename):
   """Extract the WMT en-de corpus `filename` to directory unless it's there."""
   train_path = os.path.join(directory, filename)
-  if not (tf.gfile.Exists(train_path + "__final_1.txt")):
-    url = _NUM2TEXT_DATASETS[0][0]
-    generator_utils.maybe_download(directory, "__final_1.txt", url)
+  for dataset in _NUM2TEXT_DATASETS:
+    if not (tf.gfile.Exists(train_path + dataset[1])):
+      url = _NUM2TEXT_DATASETS[0][0]
+      generator_utils.maybe_download(directory, dataset[1], url)
   return train_path
 
 
@@ -90,31 +99,30 @@ class NumToText(translate.TranslateProblem):
 
   def get_pairs(self, data_dir, tmp_dir):
     train_path = _get_num2text_dataset(tmp_dir, '')
+    for dataset in _NUM2TEXT_DATASETS:
+      with io.open(train_path + dataset[1], mode="r", encoding="utf-8") as fp:
+        with Processor(fp.read()) as processor:
+          re_clean = re.compile(r'[~`\^]')
+          processor.process(
+              pattern=r'([A-ZĄ-ža-zą-ž`~^]+)',
+              replacement_map={ 1: lambda x : re_clean.sub('', x) }
+          )
 
-    with io.open(train_path + "__final_1.txt", mode="r", encoding="utf-8") as fp:
-      with Processor(fp.read()) as processor:
-        re_clean = re.compile(r'[~`\^]')
-        processor.process(
-            pattern=r'([A-ZĄ-ža-zą-ž`~^]+)',
-            replacement_map={ 1: lambda x : re_clean.sub('', x) }
-        )
+          processor.swap()
 
-        processor.swap()
-      
-      
-      for source_span, target_span in next_pair(processor.span_map, 250, 250):
-        source_text = processor.text[source_span[0]:source_span[1]]
-        target_text = processor.processed_text[target_span[0]:target_span[1]]
+        for source_span, target_span in next_pair(processor.span_map, 250, 250):
+          source_text = processor.text[source_span[0]:source_span[1]]
+          target_text = processor.processed_text[target_span[0]:target_span[1]]
 
-        yield source_text, target_text
+          yield source_text, target_text
 
 
-  def generate_text_for_vocab(self, data_dir, tmp_dir):      
+  def generate_text_for_vocab(self, data_dir, tmp_dir):
     for inputs, targets in self.get_pairs(data_dir, tmp_dir):
       yield inputs
       yield targets
 
-  def generate_samples(self, data_dir, tmp_dir, dataset_split):      
+  def generate_samples(self, data_dir, tmp_dir, dataset_split):
       for inputs, targets in self.get_pairs(data_dir, tmp_dir):
         yield {"inputs": inputs, "targets": targets}
 
@@ -145,7 +153,7 @@ def transformer_base_multistep12_bs94_lrws10():
   """HParams for simulating 8 GPUs with MultistepAdam optimizer."""
   """Blueu<0.97 rouge_2<0.96 rouge_L~0.97 sequence_acc<0.995 acc=1"""
   hparams = transformer_base_multistep8()
-  hparams.batch_size = 9400
+  hparams.batch_size = 5000
   hparams.eval_drop_long_sequences=True
   hparams.learning_rate_warmup_steps=10000
   hparams.optimizer_multistep_accumulate_steps=12
@@ -229,6 +237,6 @@ def transformer_base_bs94_lrc1_do4_e():
 @registry.register_hparams
 def transformer_base_bs94_lrc1_do4_f():
   hparams = transformer_base_bs94_lrc1_do4()
-  hparams.batch_size = 8800
+  hparams.batch_size = 8000
   return hparams
 

@@ -3,6 +3,7 @@ PROBLEM=num_to_text
 MODEL=transformer
 WORKER_GPU=2
 HPARAMS_SET=transformer_base_bs94_lrc1_do4_f
+HPARAMS_SET=transformer_base_multistep12_bs94_lrws10
 
 USR_DIR=.
 DATA_DIR=$HOME/t2t_data
@@ -11,18 +12,8 @@ TRAIN_DIR=$HOME/t2t_train/$PROBLEM/$MODEL-$HPARAMS_SET
 
 DECODE_FILE=$DATA_DIR/decode_this.txt
 DECODE_TO_FILE=$DATA_DIR/decode_result.txt
-echo "1 2 3 4 5 6" > $DECODE_FILE
-echo "1 20 3 40 5 60" >> $DECODE_FILE
-echo "1 2 30 4 50 6" >> $DECODE_FILE
-echo "1001 2 3003 4 5005 6" >> $DECODE_FILE
-echo "1,2,3,4,5,6" >> $DECODE_FILE
-echo "1,20,3,40,5,60" >> $DECODE_FILE
-echo "1,2,30,4,50,6" >> $DECODE_FILE
-echo "1001,2,3003,4,5005,6 4 223 4553 1 0 0" >> $DECODE_FILE
-echo "1001,2,3003,4,5005,6 , 43 ,1 ,21 3" >> $DECODE_FILE
-echo "1001,2,3003,4,5005,6" >> $DECODE_FILE
-echo "1001 m. vasario 3 d.,2,3003,4,5005,6" >> $DECODE_FILE
-echo "101-11-05,2,3003,4,5005,6" >> $DECODE_FILE
+echo "Einam namo. Nerandu namo." > $DECODE_FILE
+echo "Reikia kelių kartų, kad atsinaujintų populiacija. Stuktelėjo keletą kartų." >> $DECODE_FILE
 
 
 

@@ -3,6 +3,7 @@ PROBLEM=num_to_text
 MODEL=transformer
 WORKER_GPU=2
 HPARAMS_SET=transformer_base_bs94_lrc1_do4_f
+HPARAMS_SET=transformer_base_multistep12_bs94_lrws10
 
 USR_DIR=.
 DATA_DIR=$HOME/t2t_data
