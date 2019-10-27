@@ -1,5 +1,0 @@
-tunnels:
-  httpbin:
-    proto: http
-    addr: 8888
-    autht: 6g5gPUCdTWFnivDUx32Lu_2NqGxfc7w6bTKUeigPTQM
