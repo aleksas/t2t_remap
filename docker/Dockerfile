@@ -3,6 +3,12 @@ FROM tensorflow/tensorflow:1.14.0-py3
 # Install prerequisites
 RUN apt-get clean && apt-get update && apt-get install -y locales git nano zip
 
+# Install tensor2tensor models server
+RUN echo "deb [arch=amd64] http://storage.googleapis.com/tensorflow-serving-apt stable tensorflow-model-server tensorflow-model-server-universal" | tee /etc/apt/sources.list.d/tensorflow-serving.list && \
+curl https://storage.googleapis.com/tensorflow-serving-apt/tensorflow-serving.release.pub.gpg | apt-key add -
+
+apt-get update && apt-get install tensorflow-model-server
+
 # Set the locales
 RUN locale-gen en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
