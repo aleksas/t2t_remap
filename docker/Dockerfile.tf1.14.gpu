@@ -15,7 +15,7 @@ RUN pip install -U pip && pip install --no-cache-dir \
 WORKDIR "/root/"
 
 # Checkout repo
-RUN git clone https://github.com/aleksas/t2t_remapt2t_remap.git 
+RUN git clone https://github.com/aleksas/t2t_remap.git 
 
 WORKDIR "/root/t2t_remap"
 
