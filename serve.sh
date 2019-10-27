@@ -9,7 +9,13 @@ DATA_DIR=$HOME/t2t_data
 TMP_DIR=/tmp/t2t_datagen
 TRAIN_DIR=$HOME/t2t_train/$PROBLEM/$MODEL-$HPARAMS_SET
 
+curl -o ngrok.zip https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-386.zip
+unzip ngrok.zip
+nohup ngrok http 8888 &
+
+curl http://127.0.0.1:4040/api/tunnels
+
 tensorflow_model_server \
-  --port=8000 \
+  --port=8888 \
   --model_name=$MODEL \
   --model_base_path=$TRAIN_DIR/export
