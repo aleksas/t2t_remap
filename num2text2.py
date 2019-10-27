@@ -29,8 +29,8 @@ from tensor2tensor.data_generators import wiki_lm
 from tensor2tensor.utils import registry
 from tensor2tensor.models.transformer import transformer_base, transformer_base_multistep8
 
-from .text_gen import next_pair
 from re_map import Processor
+from re_map.utils import text_range
 import re
 import io
 import tensorflow as tf
@@ -109,12 +109,8 @@ class NumToText(translate.TranslateProblem):
           )
 
           processor.swap()
-
-        for source_span, target_span in next_pair(processor.span_map, 250, 250):
-          source_text = processor.text[source_span[0]:source_span[1]]
-          target_text = processor.processed_text[target_span[0]:target_span[1]]
-
-          yield source_text, target_text
+          
+        return text_range(processor.text, processor.processed_text, processor.span_map, 250, 250)
 
 
   def generate_text_for_vocab(self, data_dir, tmp_dir):
